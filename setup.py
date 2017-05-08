@@ -7,12 +7,12 @@ install_requires = (
 )
 
 setuptools.setup(
-    name="VoltDB Py3 driver",
+    name="voltdb_py3_driver",
     version=version,
     author="Alex Kotenko",
     author_email="alex.kotenko@blockex.com",
     packages=(
-        "VoltDB python3 driver",
+        "voltdb_py3_driver",
     ),
     install_requires=install_requires,
 )
