@@ -958,8 +958,7 @@ class VoltColumn:
         # If the name is empty, use the default "modified tuples". Has to do
         # this because HSQLDB doesn't return a column name if the table is
         # empty.
-        return "(%s: %d)" % (self.name or "modified tuples" ,
-                             self.type)
+        return self.name or "modified tuples"
 
     def __eq__(self, other):
         # For now, if we've been through the query on a column with no name,
@@ -982,6 +981,8 @@ class VoltTable:
     "definition and content of one VoltDB table"
     def __init__(self, fser):
         self.fser = fser
+        self.rowCount = 0
+        self.iterIndex = 0
         self.columns = []  # column definitions
         self.tuples = []
 
@@ -997,6 +998,23 @@ class VoltTable:
         result += "\n".join([str([if_else(y == None, "NULL", y) for y in x]) for x in self.tuples])
 
         return result
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.iterIndex >= len(self.tuples):
+            raise StopIteration
+
+        row_dict = {}
+        col_index = 0
+        for column in self.columns:
+            row_dict[str(column)] = self.tuples[self.iterIndex][col_index]
+            col_index = col_index + 1
+
+        self.iterIndex = self.iterIndex + 1
+
+        return row_dict
 
     def __getstate__(self):
         return (self.columns, self.tuples)
@@ -1164,7 +1182,8 @@ class VoltResponse:
         self.appStatusString = ""
         self.roundtripTime = -1
         self.exception = None
-        self.tables = None
+        self.tables = []
+        self.iterIndex = 0
 
         if fser != None:
             self.deserialize(fser)
@@ -1175,7 +1194,7 @@ class VoltResponse:
         fser.bufferForRead()
         self.version = fser.readByte()
         self.clientHandle = fser.readInt64()
-        presentFields = fser.readByteRaw();
+        presentFields = fser.readByteRaw()
         self.status = fser.readByte()
         if presentFields & (1 << 5) != 0:
             self.statusString = fser.readString()
@@ -1193,11 +1212,23 @@ class VoltResponse:
             self.exception = None
 
         # tables[]
-        tablecount = fser.readInt16()
+        self.tableCount = fser.readInt16()
         self.tables = []
-        for i in range(tablecount):
+        for i in range(self.tableCount):
             table = VoltTable(fser)
             self.tables.append(table.readFromSerializer())
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.iterIndex >= len(self.tables):
+            raise StopIteration
+
+        result = self.tables[self.iterIndex]
+        self.iterIndex = self.iterIndex + 1
+
+        return result
 
     def __str__(self):
         tablestr=""
