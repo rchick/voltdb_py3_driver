@@ -1019,7 +1019,13 @@ class VoltTable(Sequence):
         return row_dict
 
     def __getitem__(self, i):
-        return self.tuples[i]
+        row_dict = {}
+        col_index = 0
+        for column in self.columns:
+            row_dict[str(column)] = self.tuples[i][col_index]
+            col_index = col_index + 1
+
+        return row_dict
 
     def __len__(self):
         return len(self.tuples)
