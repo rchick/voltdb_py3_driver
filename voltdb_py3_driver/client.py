@@ -24,6 +24,8 @@ import struct
 import datetime
 import decimal
 import hashlib
+from collections.abc import Sequence
+
 try:
     import ssl
     ssl_available = True
@@ -977,7 +979,7 @@ class VoltColumn:
     def writeName(self, fser):
         fser.writeString(self.name)
 
-class VoltTable:
+class VoltTable(Sequence):
     "definition and content of one VoltDB table"
     def __init__(self, fser):
         self.fser = fser
@@ -1015,6 +1017,12 @@ class VoltTable:
         self.iterIndex = self.iterIndex + 1
 
         return row_dict
+
+    def __getitem__(self, i):
+        return self.tuples[i]
+
+    def __len__(self):
+        return len(self.tuples)
 
     def __getstate__(self):
         return (self.columns, self.tuples)
@@ -1170,7 +1178,7 @@ class VoltException:
             msgstr += "  on table: %s\n" + self.table_name
         return msgstr
 
-class VoltResponse:
+class VoltResponse(Sequence):
     "VoltDB called procedure response (ClientResponse.java)"
     def __init__(self, fser):
         self.fser = fser
@@ -1229,6 +1237,12 @@ class VoltResponse:
         self.iterIndex = self.iterIndex + 1
 
         return result
+
+    def __getitem__(self, i):
+        return self.tables[i]
+
+    def __len__(self):
+        return len(self.tables)
 
     def __str__(self):
         tablestr=""
