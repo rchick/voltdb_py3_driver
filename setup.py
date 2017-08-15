@@ -1,9 +1,10 @@
 import setuptools
 
-version = "0.1.1"
+version = "0.1.2"
 
 install_requires = (
-    "gssapi",
+    "gssapi>=1.2.0",
+    "pyjks>=17.1.0",
 )
 
 setuptools.setup(
