@@ -167,8 +167,8 @@ class FastSerializer:
                  kerberos = False,
                  dump_file_path = None,
                  connect_timeout = 8,
-                 procedure_timeout = None,
-                 default_timeout = None,
+                 procedure_timeout = 5,
+                 default_timeout = 5,
                  ssl_config_file = None,
                  ssl_config = DEFAULT_SSL_CONFIG):
         """
